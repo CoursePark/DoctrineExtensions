@@ -63,15 +63,23 @@ class PaginationAdapter implements \Zend_Paginator_Adapter_Interface
     protected $namespace = 'pgid';
 
     /**
+     * a list of fields to allow sorting NULL ASC or DESC 
+     *
+     * @var array
+     */
+    protected $sortFields = null;
+    
+    /**
      * Constructor
      *
      * @param Query $query
      * @param string $ns Namespace to prevent named parameter conflicts
      */
-    public function __construct(Query $query, $ns = 'pgid')
+    public function __construct(Query $query, $ns = 'pgid', $sortFields = null)
     {
         $this->query = $query;
         $this->namespace = $ns;
+        $this->sortFields = $sortFields;
     }
 
     /**
@@ -139,7 +147,12 @@ class PaginationAdapter implements \Zend_Paginator_Adapter_Interface
         if ($this->arrayResult) {
             return $this->createWhereInQuery($ids)->getArrayResult();
         } else {
-            return $this->createWhereInQuery($ids)->getResult();
+       		if ($this->sortFields) {
+       			$this->createWhereInQuery($ids);
+       			return $this->setNullSort()->getResult();
+       		} else {
+       			return $this->createWhereInQuery($ids)->getResult();
+       		}
         }
     }
 
@@ -179,5 +192,13 @@ class PaginationAdapter implements \Zend_Paginator_Adapter_Interface
     protected function createWhereInQuery($ids)
     {
         return Paginate::createWhereInQuery($this->query, $ids, $this->namespace);
+    }
+    
+    /**
+     * @return Query
+     */
+    protected function setNullSort()
+    {
+        return Paginate::setNullSort($this->query, $this->sortFields);
     }
 }

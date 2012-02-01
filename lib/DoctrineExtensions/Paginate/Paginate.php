@@ -112,4 +112,27 @@ class Paginate
             return $query;
         }
     }
+    
+	/**
+     * @param Query $query
+     * @return Query
+     */
+    static public function setNullSort(Query $query, $fields)
+    {
+        //init
+        $hints = array();
+    	$query->setHint(Query::HINT_CUSTOM_OUTPUT_WALKER, 'DoctrineExtensions\Query\SortableNullsWalker');		
+		
+        foreach ($fields as $field => $order) {
+			if (strtolower($order) == 'first') {
+				$hints[$field] = \DoctrineExtensions\Query\SortableNullsWalker::NULLS_FIRST;
+			} else {
+				$hints[$field] = \DoctrineExtensions\Query\SortableNullsWalker::NULLS_LAST;
+			}
+		}
+		
+		$query->setHint("sortableNulls.fields", $hints);
+		
+	   	return $query;
+    }
 }
